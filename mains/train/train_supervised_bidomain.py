@@ -23,6 +23,13 @@ def train_supervised_bidomain():
     model_real, _ = load_model(setup["model"], setup["real_model_file"], domain="real")
     model_critic, _ = load_model(setup["critic_model"], setup["critic_model_file"])
 
+    sim_state_dict = torch.load("/home/ubuntu/22dat.dh/drif_workspace_corl2019/models/tmp/supervised_cliplingunet_stage1_bidomain_cliplingunet_stage1_aug1-2_sim_epoch_3.pytorch")
+    real_state_dict = torch.load("/home/ubuntu/22dat.dh/drif_workspace_corl2019/models/tmp/supervised_cliplingunet_stage1_bidomain_cliplingunet_stage1_aug1-2_real_epoch_3.pytorch")
+    critic_state_dict = torch.load("/home/ubuntu/22dat.dh/drif_workspace_corl2019/models/tmp/supervised_pvn_stage1_critic_cliplingunet_stage1_aug1-2_critic_epoch_3.pytorch")
+    
+    model_sim.load_state_dict(sim_state_dict)
+    model_real.load_state_dict(real_state_dict)
+    model_critic.load_state_dict(critic_state_dict)
     if P.get_current_parameters()["Training"].get("use_oracle_critic", False):
         model_oracle_critic, _ = load_model(setup["critic_model"], setup["critic_model_file"])
         # This changes the name in the summary writer to get a different color plot

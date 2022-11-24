@@ -35,7 +35,7 @@ def load_pytorch_model(model, name, pytorch3to4=False, namespace=None):
     #     model_dict = new_dict
     
     
-    new_dict = {str(k): v for k, v in model_dict.items()}
+    new_dict = {k: v for k, v in model_dict.items()} #remove str
 
     if model is not None:
         model.load_state_dict(new_dict, strict = False)

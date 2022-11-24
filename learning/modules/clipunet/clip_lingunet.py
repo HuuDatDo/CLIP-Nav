@@ -240,6 +240,20 @@ class CLIPLingUNet(BaseModel):
         elif self.arch_option == 2:
             self.scratch.head_block = depthwise_block(activation="relu")
             self.block_depth = 3#kwargs['block_depth']
+            
+        self.bottleneck1 = nn.Sequential(bottleneck_block(activation="relu"),
+                                         bottleneck_block(activation="relu"))
+        self.bottleneck2 = nn.Sequential(bottleneck_block(activation="relu"),
+                                         bottleneck_block(activation="relu"))
+        self.bottleneck3 = nn.Sequential(bottleneck_block(activation="relu"),
+                                         bottleneck_block(activation="relu"))
+        self.bottleneck4 = nn.Sequential(bottleneck_block(activation="relu"),
+                                         bottleneck_block(activation="relu"))
+        
+        self.conv1 = nn.Conv2d(1, 256, 3, padding=1)
+        self.conv2 = nn.Conv2d(1, 256, 3, padding=1)
+        self.conv3 = nn.Conv2d(1, 256, 3, padding=1)
+        self.conv4 = nn.Conv2d(1, 256, 3, padding=1)
 
         self.scratch.output_conv = head
 
@@ -254,7 +268,8 @@ class CLIPLingUNet(BaseModel):
                                         lingunet_params["out_channels"], 3, stride=lingunet_params["stride"],
                                         padding=1)
 
-        self.conv2d = nn.Conv2d(256,2, kernel_size = 3, padding = 1)
+        self.conv2d_inner = nn.Conv2d(256,2, kernel_size = 3, padding = 1)
+        self.conv2d_outer = nn.Conv2d(256,2, kernel_size = 3, padding = 1)
 
     def encode_image(self, img):
         with torch.no_grad():
@@ -278,29 +293,30 @@ class CLIPLingUNet(BaseModel):
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
         
-        text_features = text_features.repeat(256,1)
+        # text_features = text_features.repeat(256,1)
         logits_per_image = self.logit_scale * image_features @ text_features.t()
 
         out = logits_per_image.float().view(imshape[0], imshape[2], imshape[3], -1).permute(0,3,1,2)
                 
         return out
     
-    def bottleneck_block(self,x):
-        for _ in range(self.block_depth - 1):
-            out = self.scratch.head_block(x)
-                # print("decoder out {_}:", out)
-        out = self.scratch.head_block(out, False)
-        out = self.scratch.output_conv(out)
-        return out
+    # def bottleneck_block(self,x):
+    #     for _ in range(self.block_depth - 1):
+    #         out = self.scratch.head_block(x)
+    #             # print("decoder out {_}:", out)
+    #     out = self.scratch.head_block(out, False)
+    #     out = self.scratch.output_conv(out)
+    #     return out
     
-    def forward(self,x, text, cam_poses):
+    def forward(self,x, text, cam_poses, images_rl, cam_poses_rl):
         if self.channels_last == True:
             x.contiguous(memory_format=torch.channels_last)
             
         x = x.cuda(2)
+        images_rl = images_rl.cuda(2)
         batch_size = x.size(0)
 
-        layer_1, layer_2, layer_3, layer_4, S_W, SW_M = forward_vit(self.pretrained, x, cam_poses)
+        layer_1, layer_2, layer_3, layer_4, select_S_W, select_SW_M, SM_W = forward_vit(self.pretrained, x, cam_poses, images_rl, cam_poses_rl)
         
 
         layer_1_rn = self.scratch.layer1_rn(layer_1)
@@ -321,29 +337,90 @@ class CLIPLingUNet(BaseModel):
         path_4 = self.scratch.refinenet4(layer_4_rn)
         text_4 = self.linear1(text_features) #.view()
         out4 = self.compute_scores(path_4, text_4)
-        out4 = self.bottleneck_block(out4)
-        
+        out4 = self.bottleneck4(out4)
+        out4 = self.conv4(out4)
         
         path_3 = self.scratch.refinenet3(out4, layer_3_rn)
         # text_3 = self.linear2(text_4).view()
         out3 = self.compute_scores(path_3, text_4)
-        out3 = self.bottleneck_block(out3)
+        out3 = self.bottleneck3(out3)
+        out3 = self.conv3(out3)
         
         path_2 = self.scratch.refinenet2(out3, layer_2_rn)
         # text_2 = self.linear3(text_4).view()
         out2 = self.compute_scores(path_2, text_4)
-        out2 = self.bottleneck_block(out2)
+        out2 = self.bottleneck2(out2)
+        out2 = self.conv2(out2)
         
         path_1 = self.scratch.refinenet1(out2, layer_1_rn)
         out = self.compute_scores(path_1, text_4)
-        out = self.bottleneck_block(out)
+        out = self.bottleneck1(out)
+        out = self.conv1(out)
         out = self.scratch.head1(path_1)
         
-        inner_scores = self.conv2d(out)
-        outer_scores = F.avg_pool2d(self.conv2d(out), out.shape[2]).view([batch_size, 2])
+        inner_scores = self.conv2d_inner(out)
+        outer_scores = F.avg_pool2d(self.conv2d_outer(out), out.shape[2]).view([batch_size, 2])
         
         inner_scores, outer_scores = inner_scores.cuda(0), outer_scores.cuda(0)
         
         both_dist_scores = Partial2DDistribution(inner_scores, outer_scores)
             
-        return both_dist_scores, S_W, SW_M
+        return both_dist_scores, select_S_W, select_SW_M, SM_W
+    
+    # def forward(self,x, text, cam_poses):
+    #     if self.channels_last == True:
+    #         x.contiguous(memory_format=torch.channels_last)
+            
+    #     x = x.cuda(1)
+    #     batch_size = x.size(0)
+
+    #     layer_1, layer_2, layer_3, layer_4, S_W, SW_M = forward_vit(self.pretrained, x, cam_poses)
+        
+
+    #     layer_1_rn = self.scratch.layer1_rn(layer_1)
+    #     layer_2_rn = self.scratch.layer2_rn(layer_2)
+    #     layer_3_rn = self.scratch.layer3_rn(layer_3)
+    #     layer_4_rn = self.scratch.layer4_rn(layer_4)
+        
+    #     # print("layer_1 size", layer_1_rn.size())
+    #     # print("layer_2 size", layer_2_rn.size())
+    #     # print("layer_3 size", layer_3_rn.size())
+    #     # print("layer_4 size", layer_4_rn.size())
+        
+    #     text = clip.tokenize(text).cuda(1)
+    #     self.logit_scale = self.logit_scale.to(x.device)
+    #     text_features = self.clip_pretrained.encode_text(text)
+
+    #     #TODO:Add the text-multiplication and depthwise block
+    #     path_4 = self.scratch.refinenet4(layer_4_rn)
+    #     text_4 = self.linear1(text_features) #.view()
+    #     out4 = self.compute_scores(path_4, text_4)
+    #     out4 = self.bottleneck4(out4)
+    #     # out4 = self.conv4(out4)
+        
+    #     path_3 = self.scratch.refinenet3(out4, layer_3_rn)
+    #     # text_3 = self.linear2(text_4).view()
+    #     out3 = self.compute_scores(path_3, text_4)
+    #     out3 = self.bottleneck3(out3)
+    #     # out3 = self.conv3(out3)
+        
+    #     path_2 = self.scratch.refinenet2(out3, layer_2_rn)
+    #     # text_2 = self.linear3(text_4).view()
+    #     out2 = self.compute_scores(path_2, text_4)
+    #     out2 = self.bottleneck2(out2)
+    #     # out2 = self.conv2(out2)
+        
+    #     path_1 = self.scratch.refinenet1(out2, layer_1_rn)
+    #     out = self.compute_scores(path_1, text_4)
+    #     out = self.bottleneck1(out)
+    #     # out = self.conv1(out)
+    #     out = self.scratch.head1(path_1)
+        
+    #     inner_scores = self.conv2d_inner(out)
+    #     outer_scores = F.avg_pool2d(self.conv2d_outer(out), out.shape[2]).view([batch_size, 2])
+        
+    #     inner_scores, outer_scores = inner_scores.cuda(0), outer_scores.cuda(0)
+        
+    #     both_dist_scores = Partial2DDistribution(inner_scores, outer_scores)
+            
+    #     return both_dist_scores, S_W, SW_M

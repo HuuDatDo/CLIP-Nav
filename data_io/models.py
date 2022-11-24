@@ -203,10 +203,12 @@ def load_model(model_name_override=False, model_file_override=None, domain="sim"
         model = VilBert_Wrapper_Bidomain(run_name, model_instance_name= domain, oracle_stage1=False); pytorch_model = True
 
     elif model_name == "lseg_stage1_bidomain":
+        print("LOADING LSEG")
         model = Lseg_Stage1_Bidomain(run_name, domain=domain); pytorch_model = True    
         
     elif model_name == "cliplingunet_stage1_bidomain":
-         model = CLIPLingUNet_Stage1_Bidomain(run_name, domain = domain); pytorch_model = True
+        print("LOADING CLIPLINGUNET")
+        model = CLIPLingUNet_Stage1_Bidomain(run_name, domain = domain); pytorch_model = True
     # -----------------------------------------------------------------------------------------------------------------
 
     model_loaded = False

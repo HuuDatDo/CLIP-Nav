@@ -10,7 +10,7 @@
       "critic_model": "pvn_stage1_critic",
   
       "run_name": "cliplingunet_stage1_aug1-2",
-      "num_workers": 1,
+      "num_workers": 0,
       "augment_len": 2,
       "min_augment_len": 1,
       "trajectory_length": 35

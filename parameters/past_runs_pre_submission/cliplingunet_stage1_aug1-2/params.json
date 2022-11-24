@@ -39,7 +39,7 @@
             "model": "cliplingunet_stage1_bidomain",
             "model_file": "",
             "run_name": "cliplingunet_stage1_aug1-2",
-            "num_workers": 1,
+            "num_workers": 0,
             "first_worker": 0,
             "max_envs": -1,
             "env_range_start": 0,

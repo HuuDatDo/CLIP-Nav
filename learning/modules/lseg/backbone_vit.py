@@ -106,11 +106,11 @@ class Transpose(nn.Module):
         return x
 
 
-def forward_vit(pretrained, x, cam_poses):
+def forward_vit(pretrained, x, cam_poses, images_rl, cam_poses_rl):
     b, c, h, w = x.shape
     
     # encoder
-    glob, S_W, SM_W = pretrained.model.forward_flex(x, cam_poses)
+    glob, select_S_W, select_SM_W, SM_W = pretrained.model.forward_flex(x, cam_poses, images_rl, cam_poses_rl)
 
     layer_1 = pretrained.activations["1"]
     layer_2 = pretrained.activations["2"]
@@ -150,7 +150,7 @@ def forward_vit(pretrained, x, cam_poses):
     layer_3 = pretrained.act_postprocess3[3 : len(pretrained.act_postprocess3)](layer_3)
     layer_4 = pretrained.act_postprocess4[3 : len(pretrained.act_postprocess4)](layer_4)
 
-    return layer_1, layer_2, layer_3, layer_4, S_W, SM_W
+    return layer_1, layer_2, layer_3, layer_4, select_S_W, select_SM_W, SM_W
 
 
 def _resize_pos_embed(self, posemb, gs_h, gs_w):
@@ -170,7 +170,7 @@ def _resize_pos_embed(self, posemb, gs_h, gs_w):
     return posemb
 
 
-def forward_flex(self, x, cam_poses):
+def forward_flex(self, x, cam_poses, images_rl, cam_poses_rl):
     # print("Input image:",x.size())
     b, c, h, w = x.shape
 
@@ -186,11 +186,14 @@ def forward_flex(self, x, cam_poses):
     #   if isinstance(x, (list, tuple)):
     #       x = x[-1]  # last feature if backbone outputs list/tuple of features
     x = self.first_patch_embed(x)
-    x, M_W = self.fpv_to_global_map(x, cam_poses)
-    S_W = x
-    x, SM_W = self.leaky_integrator_global_map(x, M_W)
+    x, select_M_W = self.fpv_to_global_map(x, cam_poses)
+    select_S_W = x
+    x, select_SM_W = self.leaky_integrator_global_map(x, select_M_W)
     x = self.second_patch_embed(x)
     x = self.patch_embed.proj(x).flatten(2).transpose(1, 2)
+    
+    F_W, M_W = self.fpv_to_global_map(self.first_patch_embed(images_rl), cam_poses_rl)
+    S_W, SM_W = self.leaky_integrator_global_map(F_W, M_W)
 
 
     if getattr(self, "dist_token", None) is not None:
@@ -213,7 +216,7 @@ def forward_flex(self, x, cam_poses):
 
     x = self.norm(x)
 
-    return x, S_W, SM_W
+    return x, select_S_W, select_SM_W, SM_W
 
 
 def get_readout_oper(vit_features, features, use_readout, start_index=1):

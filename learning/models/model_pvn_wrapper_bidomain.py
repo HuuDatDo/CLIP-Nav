@@ -16,6 +16,7 @@ from learning.models.model_pvn_stage2_bidomain import PVN_Stage2_Bidomain
 from learning.models.model_pvn_stage2_keyboard import PVN_Stage2_Keyboard
 from learning.models.model_pvn_stage2_actor_critic import PVN_Stage2_ActorCritic
 from learning.models.lseg_bidomain_stage1 import Lseg_Stage1_Bidomain
+from learning.models.clipunet_bidomain_stage1 import CLIPLingUNet_Stage1_Bidomain
 from learning.modules.map_transformer import MapTransformer
 from learning.modules.visitation_softmax import VisitationSoftmax
 from learning.inputs.pose import Pose
@@ -61,7 +62,7 @@ class PVN_Wrapper_Bidomain(nn.Module):
                 map_topics=["semantic_map", "visitation_dist"],
                 markerarray_topics=["instruction"])
 
-        self.stage1_visitation_prediction = Lseg_Stage1_Bidomain(run_name, model_instance_name)
+        self.stage1_visitation_prediction = CLIPLingUNet_Stage1_Bidomain(run_name, model_instance_name)
 
         self.keyboard = self.wrapper_params.get("keyboard")
         self.rl = self.wrapper_params["learning_mode"] == "reinforcement_learning"
@@ -122,9 +123,6 @@ class PVN_Wrapper_Bidomain(nn.Module):
         if stage1_file:
             print("PVN_Wrapper: Loading Stage 1")
             try:
-                # print(self.stage1_visitation_prediction.state_dict().keys())
-                # model_dict = torch.load(get_model_dir() +"/" +stage1_file +".pytorch", map_location=lambda storage, loc: storage)
-                # print(model_dict.keys())
                 load_pytorch_model(self.stage1_visitation_prediction, stage1_file)
             except RuntimeError as e:
                 print(f"Couldn't load Stage1 without namespace: {e}")

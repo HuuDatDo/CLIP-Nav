@@ -187,17 +187,17 @@ class PVN_Stage1_Bidomain(nn.Module):
         if self.use_aux["class_map"]:
             self.losses.add_auxiliary(ClassAuxiliary2D("class_map", self.params["feature_channels"], self.params["num_landmarks"], 0,
                                                 "S_W_select", "lm_pos_map_select", "lm_indices_select"))
-        if self.use_aux["grounding_map"]:
-            self.losses.add_auxiliary(ClassAuxiliary2D("grounding_map", self.params["relevance_channels"], 2, 0,
-                                                "R_W_select", "lm_pos_map_select", "lm_mentioned_select"))
-        # CoRL model uses alignment-model groundings
-        if self.use_aux["lang"]:
-            # one output for each landmark, 2 classes per output. This is for finetuning, so use the embedding that's gonna be fine tuned
-            self.losses.add_auxiliary(ClassAuxiliary("lang", self.params["emb_size"], 2, self.params["num_landmarks"],
-                                                "sentence_embed", "lang_lm_mentioned"))
+        # if self.use_aux["grounding_map"]:
+        #     self.losses.add_auxiliary(ClassAuxiliary2D("grounding_map", self.params["relevance_channels"], 2, 0,
+        #                                         "R_W_select", "lm_pos_map_select", "lm_mentioned_select"))
+        # # CoRL model uses alignment-model groundings
+        # if self.use_aux["lang"]:
+        #     # one output for each landmark, 2 classes per output. This is for finetuning, so use the embedding that's gonna be fine tuned
+        #     self.losses.add_auxiliary(ClassAuxiliary("lang", self.params["emb_size"], 2, self.params["num_landmarks"],
+        #                                         "sentence_embed", "lang_lm_mentioned"))
 
-        if self.use_aux["regularize_map"]:
-            self.losses.add_auxiliary(FeatureRegularizationAuxiliary2D("regularize_map", "l1", "S_W_select"))
+        # if self.use_aux["regularize_map"]:
+        #     self.losses.add_auxiliary(FeatureRegularizationAuxiliary2D("regularize_map", "l1", "S_W_select"))
 
         lossfunc = self.params["path_loss_function"]
         if self.params["clip_observability"]:
@@ -423,8 +423,6 @@ class PVN_Stage1_Bidomain(nn.Module):
             self.tensor_store.keep_inputs("R_W_select", R_W_select)
             self.prof.tick("map_proc_gnd")
             # Concatenate grounding map and semantic map along channel dimension
-            print("Semantic map", S_W_select.size())
-            print("Grounding map", R_W_select.size())
             RS_W_select = torch.cat([S_W_select, R_W_select], 1)
 
         else:

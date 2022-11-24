@@ -449,7 +449,7 @@ class Lseg_Stage1_Bidomain(nn.Module):
             StartMasks_W, _ = self.map_transform_r_to_w(StartMasks_R, cam_poses, None)
             M_W = self.add_init_pos_to_coverage(M_W, StartMasks_W)
 
-        # S_W, SM_W = self.map_accumulator_w(F_W, M_W, reset_mask=reset_mask, show="acc" if IMG_DBG else "")
+        S_W, SM_W = self.map_accumulator_w(F_W, M_W, reset_mask=reset_mask, show="acc" if IMG_DBG else "")
         S_W_poses = g_poses
         self.tensor_store.keep_inputs("SM_w", SM_W_select)
         self.prof.tick("map_accumulate")

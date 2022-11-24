@@ -15,7 +15,7 @@
     "iterations_per_epoch": 50,
     "test_iterations_per_epoch": 2,
     "plot_every_n": 2,
-    "num_workers": 4,
+    "num_workers": 0,
     "num_rollouts_per_iter": 20,
     "clip": 0.1,
     "num_mini_batch": 8,

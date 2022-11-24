@@ -233,6 +233,7 @@ class TrainerBidomainBidata:
 
         epoch_loss = 0
         count = 0
+        save_img = False
         critic_elapsed_iterations = 0
 
         prof = SimpleProfiler(torch_sync=PROFILE, print=PROFILE)
@@ -317,8 +318,10 @@ class TrainerBidomainBidata:
 
             # Forward the model on the bi-domain data
             disable_losses = ["visitation_dist"] if self.params.get("disable_real_loss") else []
-            real_loss, real_store = self.model_real.sup_loss_on_batch(real_batch, eval, halfway=False, grad_noise=False, disable_losses=disable_losses)
-            sim_loss, sim_store = self.model_sim.sup_loss_on_batch(sim_batch, eval, halfway=False)
+            if count %100:
+                save_img = True
+            real_loss, real_store = self.model_real.sup_loss_on_batch(real_batch, eval, save_img=save_img, halfway=False, grad_noise=False, disable_losses=disable_losses)
+            sim_loss, sim_store = self.model_sim.sup_loss_on_batch(sim_batch, eval, save_img=save_img, halfway=False)
             prof.tick("model_forward")
 
             # Forward the model K times on simulation only data

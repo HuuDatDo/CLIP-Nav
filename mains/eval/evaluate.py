@@ -139,7 +139,6 @@ def evaluate():
 
         dataset = cumulative_dataset
     else:
-        print("ENV:",roller.env)
         dataset = roller.roll_out_policy(roll_out_params)
 
     results = {}

@@ -561,9 +561,10 @@ class Presenter:
         image = self.prep_image(image, scale)
         
         #TODO: Finish function to save image
-        # cv2.imwrite(image, path )
+        path = "/home/ubuntu/22dat.dh/images/" + name + ".jpg"
+        cv2.imwrite(path, image)
 
-    def save_image(self, image, name="live", torch=False, draw_point=None, scale=1.0, folder=""):
+    def save_img(self, image, name="live", torch=False, draw_point=None, scale=1.0, folder=""):
 
         image = self.prep_image(image, scale)
 
