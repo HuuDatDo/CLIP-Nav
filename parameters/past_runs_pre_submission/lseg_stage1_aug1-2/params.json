@@ -2,9 +2,9 @@
     "Global": {
         "Environment": {
             "airsim_settings_path": "~/Documents/AirSim/settings.json",
-            "simulator_path": "/home/ubuntu/22dat.dh/drif-master/DroneSimLab/LinuxNoEditor/MyProject5.sh",
+            "simulator_path": "/home/ubuntu/22dat.dh/DroneSimLab/LinuxNoEditor/MyProject5.sh",
             "sim_config_dir": "/home/ubuntu/unreal_config/",
-            "config_dir": "/home/ubuntu/22dat.dh/drif-master/drif_workspace_corl2019",
+            "config_dir": "/home/ubuntu/22dat.dh/drif_workspace_corl2019",
             "templates": false,
             "annotation_set": "7000",
             "headless": false

@@ -203,12 +203,13 @@ class LSeg(BaseModel):
         self.conv2d = nn.Conv2d(1,35, kernel_size = 3, padding = 1)
         
 
-    def forward(self, image, text, cam_poses):
+    def forward(self, image, text, cam_poses, images_rl, cam_poses_rl):
         batch_size = image.size(0)
         
         image = image.cuda(1)
+        images_rl = images_rl.cuda(1)
         
-        layer_1, layer_2, layer_3, layer_4, SM_W = forward_vit(self.pretrained, image, cam_poses)
+        layer_1, layer_2, layer_3, layer_4, select_S_W, select_SW_M, SM_W = forward_vit(self.pretrained, image, cam_poses, images_rl, cam_poses_rl)
         
         layer_1_rn = self.scratch.layer1_rn(layer_1)
         layer_2_rn = self.scratch.layer2_rn(layer_2)
@@ -244,7 +245,7 @@ class LSeg(BaseModel):
         out = self.scratch.output_conv(out)
         out = self.conv2d(out)
         
-        return out, SM_W
+        return out, select_SW_M, SM_W
 
         
 

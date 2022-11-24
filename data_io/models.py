@@ -226,6 +226,6 @@ def load_model(model_name_override=False, model_file_override=None, domain="sim"
             model_loaded = True
 
         if cuda:
-            model = model.cuda(0)
+            model = model.cuda()
 
     return model, model_loaded

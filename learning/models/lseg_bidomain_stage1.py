@@ -367,7 +367,7 @@ class Lseg_Stage1_Bidomain(nn.Module):
         pose = Pose(cam_pos, cam_rot)
         return pose
 
-    def forward(self, images, states, instructions, instr_lengths,
+    def forward(self, images, states, instructions, instr_lengths, save_img,
                 plan=None, noisy_start_poses=None, start_poses=None, firstseg=None, select_only=True, halfway=False, grad_noise=False, rl=False, noshow=False):
         """
         :param images: BxCxHxW batch of images (observations)
@@ -428,7 +428,7 @@ class Lseg_Stage1_Bidomain(nn.Module):
         if len(textual_instructions.split(" ")) > 60:
             print(textual_instructions)
         self.lseg = self.lseg.float().cuda(1)
-        S_W_select, SM_W_select = self.lseg(select_images, textual_instructions, cam_poses_select) #logits_seg_mask
+        S_W_select, SM_W_select, SM_W = self.lseg(select_images, textual_instructions, cam_poses_select,  images, cam_poses) #logits_seg_mask
         S_W_select = S_W_select.cuda(0)
         SM_W_select = SM_W_select.cuda(0)
 
@@ -449,7 +449,7 @@ class Lseg_Stage1_Bidomain(nn.Module):
             StartMasks_W, _ = self.map_transform_r_to_w(StartMasks_R, cam_poses, None)
             M_W = self.add_init_pos_to_coverage(M_W, StartMasks_W)
 
-        S_W, SM_W = self.map_accumulator_w(F_W, M_W, reset_mask=reset_mask, show="acc" if IMG_DBG else "")
+        # S_W, SM_W = self.map_accumulator_w(F_W, M_W, reset_mask=reset_mask, show="acc" if IMG_DBG else "")
         S_W_poses = g_poses
         self.tensor_store.keep_inputs("SM_w", SM_W_select)
         self.prof.tick("map_accumulate")
@@ -533,14 +533,12 @@ class Lseg_Stage1_Bidomain(nn.Module):
 
         lsfm = SpatialSoftmax2d()
         # prime number will mean that it will alternate between sim and real
-        if self.get_iter() % 23 == 0 and not noshow:
+        if save_img:
             for i in range(S_W_select.shape[0]):
-                # if select_images.size(0)>=2:
-                #     Presenter().show_image(select_images[2].detach().cpu(), "sample_images2", scale=4, waitkey=1) 
-                # Presenter().show_image(S_W_select.detach().cpu()[i,0:3], f"{self.domain}_s_w_select", scale=4, waitkey=1)
-                # Presenter().show_image(lsfm(log_v_dist_s_select.inner_distribution).detach().cpu()[i], f"{self.domain}_v_dist_s_select", scale=4, waitkey=1)
-                # Presenter().show_image(lsfm(log_v_dist_p_select.inner_distribution).detach().cpu()[i], f"{self.domain}_v_dist_p_select", scale=4, waitkey=1)
-                # Presenter().show_image(RS_P_select.detach().cpu()[i,0:3], f"{self.domain}_rs_p_select", scale=4, waitkey=1)
+                Presenter().save_image(S_W_select.detach().cpu()[i,0:3], f"{self.domain}_s_w_select", scale=4)
+                Presenter().save_image(lsfm(log_v_dist_s_select.inner_distribution).detach().cpu()[i], f"{self.domain}_v_dist_s_select", scale=4)
+                Presenter().save_image(lsfm(log_v_dist_p_select.inner_distribution).detach().cpu()[i], f"{self.domain}_v_dist_p_select", scale=4)
+                Presenter().save_image(RS_P_select.detach().cpu()[i,0:3], f"{self.domain}_rs_p_select", scale=4)
                 break
 
         # self.prof.tick("transform_back")
@@ -655,7 +653,7 @@ class Lseg_Stage1_Bidomain(nn.Module):
         return images, states, instructions, instr_lengths, plan_mask, firstseg_mask, start_poses, noisy_start_poses, metadata
 
     # Forward pass for training
-    def sup_loss_on_batch(self, batch, eval, halfway=False, grad_noise=False, disable_losses=[]):
+    def sup_loss_on_batch(self, batch, eval, save_img = False, halfway=False, grad_noise=False, disable_losses=[]):
         self.prof.tick("out")
         self.reset()
 
@@ -669,7 +667,7 @@ class Lseg_Stage1_Bidomain(nn.Module):
         self.prof.tick("unbatch_inputs")
 
         # ----------------------------------------------------------------------------
-        _ = self(images, states, instructions, instr_len,
+        _ = self(images, states, instructions, instr_len, save_img,
                                         plan=plan_mask, firstseg=firstseg_mask,
                                         noisy_start_poses=start_poses if eval else noisy_start_poses,
                                         start_poses=start_poses,
