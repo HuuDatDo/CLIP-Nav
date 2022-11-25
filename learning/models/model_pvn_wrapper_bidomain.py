@@ -63,7 +63,8 @@ class PVN_Wrapper_Bidomain(nn.Module):
                 markerarray_topics=["instruction"])
 
         self.stage1_visitation_prediction = CLIPLingUNet_Stage1_Bidomain(run_name, model_instance_name)
-
+        # self.stage1_visitation_prediction = Lseg_Stage1_Bidomain(run_name, model_instance_name)
+        
         self.keyboard = self.wrapper_params.get("keyboard")
         self.rl = self.wrapper_params["learning_mode"] == "reinforcement_learning"
 

@@ -347,6 +347,6 @@ class PolicyRoller:
             print_error(e)
             print_error(traceback.format_exc())
 
-        self.env.land()
+        # self.env.land()
 
         return dataset
