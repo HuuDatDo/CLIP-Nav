@@ -20,8 +20,6 @@ from learning.models.model_pvn_stage1_critic_big import PVN_Stage1_Critic_Big
 
 from learning.models.model_gsmn_bidomain import ModelGSMNBiDomain
 from learning.models.model_gsmn_critic import ModelGsmnCritic
-from learning.models.vilbert_stage2_actor_critic import VilBert_Stage2_ActorCritic
-from learning.models.vilbert_wrapper_bidomain import VilBert_Wrapper_Bidomain
 
 from learning.models.lseg_bidomain_stage1 import Lseg_Stage1_Bidomain
 from learning.models.clipunet_bidomain_stage1 import CLIPLingUNet_Stage1_Bidomain
@@ -195,12 +193,6 @@ def load_model(model_name_override=False, model_file_override=None, domain="sim"
 
     # elif model_name == "vilbert_stage1_bidomain":
     #     model = VilBert_Stage1_Bidomain(run_name, domain=domain); pytorch_model = True
-
-    elif model_name == "vilbert_stage2_actor_critic":
-        model = VilBert_Stage2_ActorCritic(run_name, model_instance_name=domain); pytorch_model = True
-
-    elif model_name == "vilbert_full_domain":
-        model = VilBert_Wrapper_Bidomain(run_name, model_instance_name= domain, oracle_stage1=False); pytorch_model = True
 
     elif model_name == "lseg_stage1_bidomain":
         print("LOADING LSEG")

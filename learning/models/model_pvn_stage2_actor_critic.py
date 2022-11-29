@@ -1,4 +1,3 @@
-#Stage 2 of the model
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,9 +12,9 @@ from learning.modules.map_transformer import MapTransformer
 from learning.modules.spatial_softmax_2d import SpatialSoftmax2d
 from learning.modules.key_tensor_store import KeyTensorStore
 from learning.modules.map_to_map.map_batch_select import MapBatchSelect
-from learning.modules.vilbert.vilbert_stage2_rlbase import VilBert_Stage2_RLBase
-from learning.modules.vilbert.vilbert_stage2_actionhead import VilBert_Stage2_ActionHead
-from learning.modules.vilbert.vilbert_stage2_valuehead import VilBert_Stage2_ValueHead
+from learning.modules.pvn.pvn_stage2_rlbase import PVN_Stage2_RLBase
+from learning.modules.pvn.pvn_stage2_actionhead import PVN_Stage2_ActionHead
+from learning.modules.pvn.pvn_stage2_valuehead import PVN_Stage2_ValueHead
 from learning.inputs.partial_2d_distribution import Partial2DDistribution
 
 from utils.simple_profiler import SimpleProfiler
@@ -67,7 +66,7 @@ class PVN_Stage2_ActorCritic(nn.Module):
                                                        world_size_px=self.params_s1["world_size_px"],
                                                        world_size_m=self.params_s1["world_size_m"])
 
-        self.action_base = VilBert_Stage2_RLBase(map_channels=self.params_s2["map_to_act_channels"],
+        self.action_base = PVN_Stage2_RLBase(map_channels=self.params_s2["map_to_act_channels"],
                                              map_struct_channels=self.params_s2["map_structure_channels"],
                                              crop_size=self.params_s2["crop_size"],
                                              map_size=self.params_s1["local_map_size"],
@@ -76,7 +75,7 @@ class PVN_Stage2_ActorCritic(nn.Module):
                                              obs_dim=self.params["obs_dim"],
                                              name="action")
 
-        self.value_base = VilBert_Stage2_RLBase(map_channels=self.params_s2["map_to_act_channels"],
+        self.value_base = PVN_Stage2_RLBase(map_channels=self.params_s2["map_to_act_channels"],
                                             map_struct_channels=self.params_s2["map_structure_channels"],
                                             crop_size=self.params_s2["crop_size"],
                                             map_size=self.params_s1["local_map_size"],
@@ -85,8 +84,8 @@ class PVN_Stage2_ActorCritic(nn.Module):
                                             obs_dim=self.params["obs_dim"],
                                             name="value")
 
-        self.action_head = VilBert_Stage2_ActionHead(h2=self.params["h2"])
-        self.value_head = VilBert_Stage2_ValueHead(h2=self.params["h2"])
+        self.action_head = PVN_Stage2_ActionHead(h2=self.params["h2"])
+        self.value_head = PVN_Stage2_ValueHead(h2=self.params["h2"])
 
         self.spatialsoftmax = SpatialSoftmax2d()
         self.batch_select = MapBatchSelect()
