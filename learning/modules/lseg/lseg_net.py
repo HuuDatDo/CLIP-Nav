@@ -206,8 +206,8 @@ class LSeg(BaseModel):
     def forward(self, image, text, cam_poses, images_rl, cam_poses_rl):
         batch_size = image.size(0)
         
-        image = image.cuda(1)
-        images_rl = images_rl.cuda(1)
+        image = image.cuda(3)
+        images_rl = images_rl.cuda(3)
         
         layer_1, layer_2, layer_3, layer_4, select_S_W, select_SW_M, SM_W = forward_vit(self.pretrained, image, cam_poses, images_rl, cam_poses_rl)
         
@@ -216,7 +216,7 @@ class LSeg(BaseModel):
         layer_3_rn = self.scratch.layer3_rn(layer_3)
         layer_4_rn = self.scratch.layer4_rn(layer_4)
         
-        text = clip.tokenize(text).cuda(1)
+        text = clip.tokenize(text).cuda(3)
         self.logit_scale = self.logit_scale.to(image.device)
         text_features = self.clip_pretrained.encode_text(text)
 

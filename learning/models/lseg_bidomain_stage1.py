@@ -427,7 +427,7 @@ class Lseg_Stage1_Bidomain(nn.Module):
             textual_instructions += " "
         if len(textual_instructions.split(" ")) > 60:
             print(textual_instructions)
-        self.lseg = self.lseg.float().cuda(1)
+        self.lseg = self.lseg.float().cuda(3)
         S_W_select, SM_W_select, SM_W = self.lseg(select_images, textual_instructions, cam_poses_select,  images, cam_poses) #logits_seg_mask
         S_W_select = S_W_select.cuda(0)
         SM_W_select = SM_W_select.cuda(0)

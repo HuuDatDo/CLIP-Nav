@@ -266,8 +266,8 @@ class TrainerBidomainBidata:
                         prof.tick("critic_load_data")
                         # When training the critic, we don't backprop into the model, so we don't need gradients here
                         with torch.no_grad():
-                            real_loss, real_store_b = self.model_real.sup_loss_on_batch(real_c_batch, eval=eval, halfway=True)
-                            sim_loss, sim_store_b = self.model_sim.sup_loss_on_batch(sim_c_batch, eval=eval, halfway=True)
+                            real_loss, real_store_b = self.model_real.sup_loss_on_batch(real_c_batch, eval=eval, save_img = save_img, count=count, halfway=True)
+                            sim_loss, sim_store_b = self.model_sim.sup_loss_on_batch(sim_c_batch, eval=eval, save_img = save_img, count= count, halfway=True)
                         prof.tick("critic_features")
                         real_store.append(real_store_b)
                         sim_store.append(sim_store_b)
@@ -318,10 +318,12 @@ class TrainerBidomainBidata:
 
             # Forward the model on the bi-domain data
             disable_losses = ["visitation_dist"] if self.params.get("disable_real_loss") else []
-            if count %100:
+            if count %250 == 0:
                 save_img = True
-            real_loss, real_store = self.model_real.sup_loss_on_batch(real_batch, eval, save_img=save_img, halfway=False, grad_noise=False, disable_losses=disable_losses)
-            sim_loss, sim_store = self.model_sim.sup_loss_on_batch(sim_batch, eval, save_img=save_img, halfway=False)
+            else:
+                save_img = False
+            real_loss, real_store = self.model_real.sup_loss_on_batch(real_batch, eval, save_img=save_img, count = count, halfway=False, grad_noise=False, disable_losses=disable_losses)
+            sim_loss, sim_store = self.model_sim.sup_loss_on_batch(sim_batch, eval, save_img=save_img, count = count, halfway=False)
             prof.tick("model_forward")
 
             # Forward the model K times on simulation only data
@@ -336,7 +338,7 @@ class TrainerBidomainBidata:
                         print("retry")
                         continue
                 prof.tick("load_model_data")
-                sim_loss_b, _ = self.model_sim.sup_loss_on_batch(sim_batch, eval, halfway=False)
+                sim_loss_b, _ = self.model_sim.sup_loss_on_batch(sim_batch, eval, save_img, count, halfway=False)
                 sim_loss = (sim_loss + sim_loss_b) if sim_loss else sim_loss_b
                 #print(f"  Model forward common sim, loss: {sim_loss_b.detach().cpu().item()}")
                 prof.tick("model_forward")
@@ -362,7 +364,7 @@ class TrainerBidomainBidata:
             # Grad step
             if not eval and total_loss.requires_grad:
                 self.optim_models.zero_grad()
-                total_loss.backward() #retain_graph=True figure out why we need this
+                total_loss.backward(retain_graph=True) #retain_graph=True figure out why we need this
                 self.optim_models.step()
                 prof.tick("model_backward")
 

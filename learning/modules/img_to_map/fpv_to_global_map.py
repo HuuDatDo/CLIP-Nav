@@ -1,6 +1,7 @@
 import torch
 from torch import nn as nn
 import torch.nn.functional as F
+import timm
 
 from learning.inputs.common import empty_float_tensor
 from learning.modules.map_transformer_base import MapTransformerBase
@@ -41,7 +42,10 @@ class FPVToGlobalMap(MapTransformerBase):
             self.img_to_features = nn.MaxPool2d(8)
         else:
             # Provide enough padding so that the map is scaled down by powers of 2.
-            self.img_to_features = ImgToFeatures(res_channels, map_channels, img_w, img_h)
+            pretrained = timm.create_model("vit_base_resnet50_384", pretrained=True)
+            self.img_to_features = nn.Sequential(*list(pretrained.patch_embed.backbone.stem),
+                                      *list(pretrained.patch_embed.backbone.stages.children())[:1],
+                                      torch.nn.Conv2d(256, 32, 3, padding="same"))
 
         # Project feature maps to the global frame
         self.map_projection = PinholeCameraProjectionModuleGlobal(

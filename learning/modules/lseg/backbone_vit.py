@@ -106,11 +106,11 @@ class Transpose(nn.Module):
         return x
 
 
-def forward_vit(pretrained, x, cam_poses, images_rl, cam_poses_rl):
+def forward_vit(pretrained, x):
     b, c, h, w = x.shape
     
     # encoder
-    glob, select_S_W, select_SM_W, SM_W = pretrained.model.forward_flex(x, cam_poses, images_rl, cam_poses_rl)
+    glob = pretrained.model.forward_flex(x)
 
     layer_1 = pretrained.activations["1"]
     layer_2 = pretrained.activations["2"]
@@ -129,8 +129,8 @@ def forward_vit(pretrained, x, cam_poses, images_rl, cam_poses_rl):
             2,
             torch.Size(
                 [
-                    w // pretrained.model.patch_size[1],
-                    w // pretrained.model.patch_size[0],
+                    w*4 // pretrained.model.patch_size[1],
+                    w*4 // pretrained.model.patch_size[0],
                 ]
             ),
         )
@@ -150,7 +150,7 @@ def forward_vit(pretrained, x, cam_poses, images_rl, cam_poses_rl):
     layer_3 = pretrained.act_postprocess3[3 : len(pretrained.act_postprocess3)](layer_3)
     layer_4 = pretrained.act_postprocess4[3 : len(pretrained.act_postprocess4)](layer_4)
 
-    return layer_1, layer_2, layer_3, layer_4, select_S_W, select_SM_W, SM_W
+    return layer_1, layer_2, layer_3, layer_4
 
 
 def _resize_pos_embed(self, posemb, gs_h, gs_w):
@@ -170,31 +170,27 @@ def _resize_pos_embed(self, posemb, gs_h, gs_w):
     return posemb
 
 
-def forward_flex(self, x, cam_poses, images_rl, cam_poses_rl):
+def forward_flex(self, x):
     # print("Input image:",x.size())
     b, c, h, w = x.shape
 
     pos_embed = self._resize_pos_embed(
-        self.pos_embed, w // self.patch_size[1], w // self.patch_size[0]
+        self.pos_embed, (h*4) //self.patch_size[1], (w*4) //self.patch_size[0]
     )
 
     B = x.shape[0]
-
-    
+    x = self.second_patch_embed(x)
+    # print("X SIZE", self.patch_embed.proj(x).flatten(2).size())
+    x = self.patch_embed.proj(x).flatten(2).transpose(1, 2)
     # if hasattr(self.first_patch_embed, "backbone"):
     #   x = self.first_patch_embed.backbone(x)
     #   if isinstance(x, (list, tuple)):
     #       x = x[-1]  # last feature if backbone outputs list/tuple of features
-    x = self.first_patch_embed(x)
-    x, select_M_W = self.fpv_to_global_map(x, cam_poses)
-    select_S_W = x
-    x, select_SM_W = self.leaky_integrator_global_map(x, select_M_W)
-    x = self.second_patch_embed(x)
-    x = self.patch_embed.proj(x).flatten(2).transpose(1, 2)
-    
-    F_W, M_W = self.fpv_to_global_map(self.first_patch_embed(images_rl), cam_poses_rl)
-    S_W, SM_W = self.leaky_integrator_global_map(F_W, M_W)
-
+    # x = self.first_patch_embed(x)
+    # x, select_M_W = self.fpv_to_global_map(x, cam_poses)
+    # select_S_W = x
+    # x, select_SM_W = self.leaky_integrator_global_map(x, select_M_W)
+    # x = self.patch_embed.proj(x).flatten(2).transpose(1, 2)
 
     if getattr(self, "dist_token", None) is not None:
         cls_tokens = self.cls_token.expand(
@@ -216,7 +212,7 @@ def forward_flex(self, x, cam_poses, images_rl, cam_poses_rl):
 
     x = self.norm(x)
 
-    return x, select_S_W, select_SM_W, SM_W
+    return x #, select_S_W, select_SM_W, SM_W
 
 
 def get_readout_oper(vit_features, features, use_readout, start_index=1):

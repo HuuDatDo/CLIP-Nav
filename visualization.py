@@ -416,13 +416,23 @@ class Presenter:
         is_torch = hasattr(image, "cpu")
         if is_torch:
             image = image.detach().cpu().numpy()
-            image = image.squeeze()
+            # image = image.squeeze()
             if len(image.shape) == 3:
                 image = image.transpose((1, 2, 0))
 
         image = image - np.min(image)
         image = image / (np.max(image) + 1e-9)
 
+        # print("IMAGE SHAPE PREP", image.shape)
+        if len(image.shape) == 3 and image.shape[2] == 1:
+            # print("SHAPE =1")
+            newshape = list(image.shape)
+            newshape[2] = 2
+            new_img = np.zeros(newshape)
+            new_img[:, :, 0:1] = image
+            image = new_img
+            # print(image.shape)
+            
         # Only 2 channels - add another one
         if len(image.shape) == 3 and image.shape[2] == 2:
             newshape = list(image.shape)
@@ -552,18 +562,23 @@ class Presenter:
         else:
             cv2.waitKey(10)
     
-    def save_image(self,image, name="live", torch=False, waitkey=False, scale=1.0):
+    def save_image(self,image, num=None, name="live", waitkey=False, scale=1.0):
         if self.headless:
             return
         
         import cv2
+        import random
+        if num is None:
+            num = random.randint(1,100)
         
         image = self.prep_image(image, scale)
+        # cv2.convertScaleAbs(image, alpha=(255.0))
+        # image = torch.tensor(image.transpose(1,2,0))
         
         #TODO: Finish function to save image
-        path = "/home/ubuntu/22dat.dh/images/" + name + ".jpg"
-        cv2.imwrite(path, image)
-
+        path = "/home/ubuntu/22dat.dh/maps/" + name + str(num) +".png"
+        cv2.imwrite(path, image*255)
+        
     def save_img(self, image, name="live", torch=False, draw_point=None, scale=1.0, folder=""):
 
         image = self.prep_image(image, scale)

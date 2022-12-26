@@ -7,7 +7,7 @@
             "config_dir": "/home/ubuntu/22dat.dh/drif_workspace_corl2019",
             "templates": false,
             "annotation_set": "7000",
-            "headless": false
+            "headless": true
         },
         "AirSim": {
             "SettingdVersion": 1.0,

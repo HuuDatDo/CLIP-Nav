@@ -242,8 +242,9 @@ class Lingunet5OOB(torch.nn.Module):
             #x3 = self.dropout2(x3)
             #x4 = self.dropout2(x4)
             #x5 = self.dropout2(x5)
-
+        print("X5 SIZE",x5.size())
         x6 = self.act(self.deconv1(x5, output_size=x4.size()))
+        print("X6 SIZE", x6.size())
         x46 = torch.cat([x4, x6], 1)
         x7 = self.dnorm3(self.act(self.deconv2(x46, output_size=x3.size())))
         x37 = torch.cat([x3, x7], 1)

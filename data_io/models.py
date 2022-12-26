@@ -23,6 +23,8 @@ from learning.models.model_gsmn_critic import ModelGsmnCritic
 
 from learning.models.lseg_bidomain_stage1 import Lseg_Stage1_Bidomain
 from learning.models.clipunet_bidomain_stage1 import CLIPLingUNet_Stage1_Bidomain
+from learning.models.cliplingunet_bidomain_stage1 import CLIPLingunetv2_Stage1_Bidomain
+from learning.models.resclipunet_bidomain_stage1 import CLIPUnet_Stage1_Bidomain
 
 from learning.utils import get_n_params, get_n_trainable_params
 from parameters.parameter_server import get_current_parameters
@@ -201,6 +203,14 @@ def load_model(model_name_override=False, model_file_override=None, domain="sim"
     elif model_name == "cliplingunet_stage1_bidomain":
         print("LOADING CLIPLINGUNET")
         model = CLIPLingUNet_Stage1_Bidomain(run_name, domain = domain); pytorch_model = True
+        
+    elif model_name == "cliplingunetv2_stage1_bidomain":
+        print("LOADING CLIPLINGUNETv2")
+        model = CLIPLingunetv2_Stage1_Bidomain(run_name, domain = domain); pytorch_model = True
+        
+    elif model_name == "clipunet_stage1_bidomain":
+        print("LOADING CLIPUNET")
+        model = CLIPUnet_Stage1_Bidomain(run_name, domain = domain); pytorch_model = True
     # -----------------------------------------------------------------------------------------------------------------
 
     model_loaded = False
@@ -218,6 +228,6 @@ def load_model(model_name_override=False, model_file_override=None, domain="sim"
             model_loaded = True
 
         if cuda:
-            model = model.cuda()
+            model = model.cuda(1)
 
     return model, model_loaded

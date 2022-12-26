@@ -226,8 +226,8 @@ class CLIPLingUNet_Stage1_Bidomain(nn.Module):
         #     self.losses.add_auxiliary(ClassAuxiliary("lang", self.params["emb_size"], 2, self.params["num_landmarks"],
         #                                         "sentence_embed", "lang_lm_mentioned"))
 
-        # if self.use_aux["regularize_map"]:
-        #     self.losses.add_auxiliary(FeatureRegularizationAuxiliary2D("regularize_map", "l1", "S_W_select"))
+        if self.use_aux["regularize_map"]:
+            self.losses.add_auxiliary(FeatureRegularizationAuxiliary2D("regularize_map", "l1", "S_W_select"))
 
         lossfunc = self.params["path_loss_function"]
         if self.params["clip_observability"]:
@@ -360,7 +360,7 @@ class CLIPLingUNet_Stage1_Bidomain(nn.Module):
         pose = Pose(cam_pos, cam_rot)
         return pose
 
-    def forward(self, images, states, instructions, instr_lengths, save_img,
+    def forward(self, images, states, instructions, instr_lengths, save_img, count,
                 plan=None, noisy_start_poses=None, start_poses=None, firstseg=None, select_only=True, halfway=False, grad_noise=False, rl=False, noshow=False):
         """
         :param images: BxCxHxW batch of images (observations)
@@ -416,7 +416,7 @@ class CLIPLingUNet_Stage1_Bidomain(nn.Module):
             textual_instructions += " "
         if len(textual_instructions.split(" ")) > 60:
             print(textual_instructions)
-        self.clip_lingunet = self.clip_lingunet.float().cuda(2)
+        self.clip_lingunet = self.clip_lingunet.float().cuda(3)
         log_v_dist_p_select, S_W_select, SM_W_select, SM_W = self.clip_lingunet(select_images,textual_instructions, cam_poses_select, images, cam_poses)
 
         # log_v_dist_p_select = log_v_dist_p_select.cuda(0)
@@ -666,7 +666,7 @@ class CLIPLingUNet_Stage1_Bidomain(nn.Module):
         return images, states, instructions, instr_lengths, plan_mask, firstseg_mask, start_poses, noisy_start_poses, metadata
 
     # Forward pass for training
-    def sup_loss_on_batch(self, batch, eval, save_img = False, halfway=False, grad_noise=False, disable_losses=[]):
+    def sup_loss_on_batch(self, batch, eval, save_img, count, halfway=False, grad_noise=False, disable_losses=[]):
         self.prof.tick("out")
         self.reset()
 
@@ -680,7 +680,7 @@ class CLIPLingUNet_Stage1_Bidomain(nn.Module):
         self.prof.tick("unbatch_inputs")
 
         # ----------------------------------------------------------------------------
-        _ = self(images, states, instructions, instr_len, save_img,
+        _ = self(images, states, instructions, instr_len, save_img = save_img, count=count,
                                         plan=plan_mask, firstseg=firstseg_mask,
                                         noisy_start_poses=start_poses if eval else noisy_start_poses,
                                         start_poses=start_poses,
@@ -726,7 +726,7 @@ class CLIPLingUNet_Stage1_Bidomain(nn.Module):
 
         losses, metrics = self.losses.calculate_aux_loss(tensor_store=self.tensor_store, reduce_average=True, disable_losses=disable_losses)
         loss = self.losses.combine_losses(losses, self.aux_weights)
-        
+
         self.prof.tick("calc_losses")
 
         prefix = self.model_name + ("/eval" if eval else "/train")

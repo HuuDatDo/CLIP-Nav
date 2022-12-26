@@ -264,7 +264,6 @@ class TrainerBidomain:
 
                     # Update the critic
                     critic_batch_num += 1
-                    print(torch.cuda.memory_allocated())
                     self.optim_critic.zero_grad()
                     # Wasserstein distance is maximum distance transport cost under Lipschitz constraint, so we maximize it
                     (-wdist_loss_a).backward()
@@ -325,7 +324,7 @@ class TrainerBidomain:
             if not eval and total_loss.requires_grad:
                 self.optim_models.zero_grad()
                 try:
-                    total_loss.backward()
+                    total_loss.backward(retain_graph=True)
                 except Exception as e:
                     print("Error backpropping: ")
                     print(e)

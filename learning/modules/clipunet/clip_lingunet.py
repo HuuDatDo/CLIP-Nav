@@ -312,8 +312,8 @@ class CLIPLingUNet(BaseModel):
         if self.channels_last == True:
             x.contiguous(memory_format=torch.channels_last)
             
-        x = x.cuda(2)
-        images_rl = images_rl.cuda(2)
+        x = x.cuda(3)
+        images_rl = images_rl.cuda(3)
         batch_size = x.size(0)
 
         layer_1, layer_2, layer_3, layer_4, select_S_W, select_SW_M, SM_W = forward_vit(self.pretrained, x, cam_poses, images_rl, cam_poses_rl)
@@ -329,7 +329,7 @@ class CLIPLingUNet(BaseModel):
         # print("layer_3 size", layer_3_rn.size())
         # print("layer_4 size", layer_4_rn.size())
         
-        text = clip.tokenize(text).cuda(2)
+        text = clip.tokenize(text).cuda(3)
         self.logit_scale = self.logit_scale.to(x.device)
         text_features = self.clip_pretrained.encode_text(text)
 
@@ -356,7 +356,7 @@ class CLIPLingUNet(BaseModel):
         out = self.compute_scores(path_1, text_4)
         out = self.bottleneck1(out)
         out = self.conv1(out)
-        out = self.scratch.head1(path_1)
+        out = self.scratch.head(self.scratch.head1(out))
         
         inner_scores = self.conv2d_inner(out)
         outer_scores = F.avg_pool2d(self.conv2d_outer(out), out.shape[2]).view([batch_size, 2])
