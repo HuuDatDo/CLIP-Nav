@@ -31,4 +31,5 @@ On CLIP-based model:
 `python mains/eval/evaluate.py corl_2019/eval/tables/dev_small/eval_cliplingunet_sureal_dev_small_sim`
 
 On CLIPUnet model:
+
 `python mains/eval/evaluate.py corl_2019/eval/tables/dev_small/eval_clipunet_sureal_dev_small_sim`
