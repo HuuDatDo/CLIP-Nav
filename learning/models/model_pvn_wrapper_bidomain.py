@@ -18,6 +18,7 @@ from learning.models.model_pvn_stage2_actor_critic import PVN_Stage2_ActorCritic
 from learning.models.lseg_bidomain_stage1 import Lseg_Stage1_Bidomain
 from learning.models.clipunet_bidomain_stage1 import CLIPLingUNet_Stage1_Bidomain
 from learning.models.cliplingunet_bidomain_stage1 import CLIPLingunetv2_Stage1_Bidomain
+from learning.models.resclipunet_bidomain_stage1 import CLIPUnet_Stage1_Bidomain
 from learning.modules.map_transformer import MapTransformer
 from learning.modules.visitation_softmax import VisitationSoftmax
 from learning.inputs.pose import Pose
@@ -63,7 +64,7 @@ class PVN_Wrapper_Bidomain(nn.Module):
                 map_topics=["semantic_map", "visitation_dist"],
                 markerarray_topics=["instruction"])
 
-        self.stage1_visitation_prediction = CLIPLingunetv2_Stage1_Bidomain(run_name, model_instance_name)
+        self.stage1_visitation_prediction = CLIPUnet_Stage1_Bidomain(run_name, model_instance_name)
         # self.stage1_visitation_prediction = Lseg_Stage1_Bidomain(run_name, model_instance_name)
         
         self.keyboard = self.wrapper_params.get("keyboard")

@@ -16,6 +16,9 @@ For CLIP-based model:
 
 https://drive.google.com/file/d/1WU2Sqs0OhO18ObWQ_1SMTMSsToA7obDE/view?usp=sharing
 
+For CLIPUnet model:
+
+
 3. Run evaluation:
 
 On Lseg-based model:
@@ -25,3 +28,6 @@ On Lseg-based model:
 On CLIP-based model:
 
 `python mains/eval/evaluate.py corl_2019/eval/tables/dev_small/eval_cliplingunet_sureal_dev_small_sim`
+
+On CLIPUnet model:
+`python mains/eval/evaluate.py corl_2019/eval/tables/dev_small/eval_clipunet_sureal_dev_small_sim`
