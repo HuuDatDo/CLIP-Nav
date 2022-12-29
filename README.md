@@ -20,6 +20,10 @@ For CLIPUnet model:
 
 https://drive.google.com/file/d/1Ngyz1yzFlI3dYuSmKAXxVQm5369wHwBd/view?usp=sharing
 
+For CLIPUnet without auxiliary:
+
+https://drive.google.com/file/d/1mKy8lS0DI9cyiMoXWl1GC8ARnAWcjMIA/view?usp=sharing
+
 3. Run evaluation:
 
 On Lseg-based model:
