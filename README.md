@@ -16,9 +16,9 @@ For CLIP-based model:
 
 https://drive.google.com/file/d/1WU2Sqs0OhO18ObWQ_1SMTMSsToA7obDE/view?usp=sharing
 
-For CLIPUnet model (30 epochs):
+For CLIPUnet model (40 epochs):
 
-https://drive.google.com/file/d/1kWs4MRsRfwtD6uNy_GI0aZVsV9ICLlgO/view?usp=sharing
+https://drive.google.com/file/d/1DqirS8lM6c_hUqc9xgwDAGJbHfEvS8kL/view?usp=sharing
 
 For CLIPUnet without auxiliary:
 
