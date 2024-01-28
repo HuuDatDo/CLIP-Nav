@@ -2,7 +2,7 @@
 
 This work extends from [Learning to Map Natural Language Instructions to Physical Quadcopter Control using Simulated Flight](https://arxiv.org/abs/1910.09664) by [Valts Blukis](https://www.cs.cornell.edu/~valts/). This repo introduces a new method to achieve a comparable success rate for drone navigation without the need for auxiliary losses. Specifically, CLIP-NAV leverages the zero-shot capabilities of CLIP and combines it with the LingUNet via patch-wise product and regularization. **A full report will be uploaded soon!**
 
-##System Setup
+## System Setup
 
 Please follow the instructions to download data and simulation in the original [drif repo](https://github.com/lil-lab/drif?tab=readme-ov-file#data-and-simulator-download)
 
