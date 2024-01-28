@@ -1,6 +1,7 @@
 # CLIP-NAV: Pretraining Image-Language for Drone Navigation
 
 This work extends from [Learning to Map Natural Language Instructions to Physical Quadcopter Control using Simulated Flight](https://arxiv.org/abs/1910.09664) by [Valts Blukis](https://www.cs.cornell.edu/~valts/). This repo introduces a new method to achieve a comparable success rate for drone navigation without the need for auxiliary losses. Specifically, CLIP-NAV leverages the zero-shot capabilities of CLIP and combines it with the LingUNet via patch-wise product and regularization. **A full report will be uploaded soon!**
+
 ![An example of success navigation](example.png)
 
 ## System Setup
